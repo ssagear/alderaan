@@ -12,6 +12,8 @@ import warnings
 from datetime import datetime
 from timeit import default_timer as timer
 
+sys.path.append('../')
+
 print("")
 print("+"*shutil.get_terminal_size().columns)
 print("ALDERAAN Detrending and TTV Estimation")
@@ -28,6 +30,7 @@ global_start_time = timer()
 
 import argparse
 import matplotlib as mpl
+mpl.use('TkAgg')
 
 try:
     parser = argparse.ArgumentParser(description="Inputs for ALDERAAN transit fiting pipeline")
@@ -66,7 +69,7 @@ except:
     pass
 
 
-USE_SC = False
+USE_SC = True
 
 
 print("")
@@ -172,7 +175,7 @@ def main():
     
     
     # Read in the data from csv file
-    target_dict = pd.read_csv(PROJECT_DIR + 'Catalogs/' + CATALOG)
+    target_dict = pd.read_csv(PROJECT_DIR + 'Catalogs/' + CATALOG, comment='#')
     
     # set KOI_ID global variable
     if MISSION == "Kepler":
@@ -182,20 +185,21 @@ def main():
     else:
         raise ValueError("MISSION must be 'Kepler' or 'Simulated'")
     
+    
     # pull relevant quantities and establish GLOBAL variables
-    use = np.array(target_dict['koi_id']) == KOI_ID
+    use = np.array(target_dict['kepoi_sys_name']) == KOI_ID
     
-    KIC = np.array(target_dict['kic_id'], dtype='int')[use]
-    NPL = np.array(target_dict['npl'], dtype='int')[use]
+    KIC = np.array(target_dict['kepid'], dtype='int')[use]
+    NPL = np.array(target_dict['koi_count'], dtype='int')[use]
     
-    U1 = np.array(target_dict['limbdark_1'], dtype='float')[use]
-    U2 = np.array(target_dict['limbdark_2'], dtype='float')[use]
+    U1 = np.array(target_dict['koi_ldm_coeff1'], dtype='float')[use]
+    U2 = np.array(target_dict['koi_ldm_coeff2'], dtype='float')[use]
     
-    PERIODS = np.array(target_dict['period'], dtype='float')[use]
-    EPOCHS  = np.array(target_dict['epoch'],  dtype='float')[use]
-    DEPTHS  = np.array(target_dict['depth'], dtype='float')[use]*1e-6          # [ppm] --> []
-    DURS    = np.array(target_dict['duration'], dtype='float')[use]/24         # [hrs] --> [days]
-    IMPACTS = np.array(target_dict['impact'], dtype='float')[use]
+    PERIODS = np.array(target_dict['koi_period'], dtype='float')[use]
+    EPOCHS  = np.array(target_dict['koi_time0bk'],  dtype='float')[use]
+    DEPTHS  = np.array(target_dict['koi_depth'], dtype='float')[use]*1e-6          # [ppm] --> []
+    DURS    = np.array(target_dict['koi_duration'], dtype='float')[use]/24         # [hrs] --> [days]
+    IMPACTS = np.array(target_dict['koi_impact'], dtype='float')[use]
     
     # do some consistency checks
     if all(k == KIC[0] for k in KIC): KIC = KIC[0]
@@ -373,7 +377,7 @@ def main():
     # use Holczer+ 2016 TTVs where they exist
     HOLCZER_FILE = PROJECT_DIR + 'Catalogs/holczer_2016_kepler_ttvs.txt'
     
-    holczer_data = np.loadtxt(HOLCZER_FILE, usecols=[0,1,2,3])
+    holczer_data = np.loadtxt(HOLCZER_FILE, usecols=[0,1,2,3], comments='#')
     
     holczer_inds = []
     holczer_tts  = []
@@ -395,6 +399,7 @@ def main():
             holczer_pers.append(np.nan)
     
     holczer_pers = np.asarray(holczer_pers)
+    
     
     
     # smooth and interpolate Holczer+ 2016 TTVs where they exist
@@ -454,12 +459,13 @@ def main():
             plt.xlabel("Time [BJKD]", fontsize=20)
             plt.ylabel("O-C [min]", fontsize=20)
             plt.legend(fontsize=12)
-            #plt.savefig(os.path.join(FIGURE_DIR, TARGET + '_ttvs_holczer_{0:02d}.png'.format(npl)), bbox_inches='tight')
+            plt.savefig(os.path.join(FIGURE_DIR, TARGET + '_ttvs_holczer_{0:02d}.png'.format(npl)), bbox_inches='tight')
             if IPLOT:
                 plt.show()
             else:
                 plt.close()
     
+
     
     # check if Holczer TTVs exist, and if so, replace the linear ephemeris
     for npl, p in enumerate(planets):
@@ -490,156 +496,6 @@ def main():
         else:
             pass
     
-    
-    # # ########################
-    # # ----- SIMULATED DATA -----
-    # # ########################
-    
-    
-    if MISSION == 'Simulated':
-        print("Simulating transits for injection-and-recovery test")
-        
-        # REMOVE KNOWN TRANSITS    
-        tts  = []
-        inds = []
-        b    = np.zeros(NPL)
-        ror  = np.zeros(NPL)
-        dur  = np.zeros(NPL)
-    
-        for npl, p in enumerate(planets):
-            tts.append(p.tts)
-            inds.append(p.index)
-            b[npl] = p.impact
-            ror[npl] = np.sqrt(p.depth)
-            dur[npl] = p.duration
-    
-        starrystar = exo.LimbDarkLightCurve([U1,U2])
-        orbit = exo.orbits.TTVOrbit(transit_times=tts, transit_inds=inds, b=b, ror=ror, duration=dur)
-    
-        for i, lcd in enumerate(lc_data):
-            light_curve = starrystar.get_light_curve(orbit=orbit, r=ror, t=lcd.time, oversample=long_cadence_oversample, texp=lcit)
-            model_flux = pm.math.sum(light_curve, axis=-1) + T.ones(len(lcd.time))
-    
-            lcd.flux /= model_flux.eval()
-    
-        for i, scd in enumerate(sc_data):
-            light_curve = starrystar.get_light_curve(orbit=orbit, r=ror, t=scd.time)
-            model_flux = pm.math.sum(light_curve, axis=-1) + T.ones(len(scd.time))
-    
-            scd.flux /= model_flux.eval()
-            
-        
-        # LOAD SIMULATED DATA
-        target_dict = pd.read_csv(PROJECT_DIR + 'Simulations/{0}/{0}.csv'.format(RUN_ID))
-    
-        # pull relevant quantities and establish GLOBAL variables
-        use = np.array(target_dict['koi_id']) == KOI_ID
-    
-        KIC = np.array(target_dict['kic_id'], dtype='int')[use]
-        NPL = np.array(target_dict['npl'], dtype='int')[use]
-    
-        U1 = np.array(target_dict['limbdark_1'], dtype='float')[use]
-        U2 = np.array(target_dict['limbdark_2'], dtype='float')[use]
-    
-        PERIODS = np.array(target_dict['period'], dtype='float')[use]
-        EPOCHS  = np.array(target_dict['epoch'],  dtype='float')[use]
-        DEPTHS  = np.array(target_dict['ror'], dtype='float')[use]**2
-        DURS    = np.array(target_dict['duration'], dtype='float')[use]
-        IMPACTS = np.array(target_dict['impact'], dtype='float')[use]
-        
-        # do some consistency checks
-        if all(k == KIC[0] for k in KIC): KIC = KIC[0]
-        else: raise ValueError("There are inconsistencies with KIC in the csv input file")
-    
-        if all(n == NPL[0] for n in NPL): NPL = NPL[0]
-        else: raise ValueError("There are inconsistencies with NPL in the csv input file")
-    
-        if all(u == U1[0] for u in U1): U1 = U1[0]
-        else: raise ValueError("There are inconsistencies with U1 in the csv input file")
-    
-        if all(u == U2[0] for u in U2): U2 = U2[0]
-        else: raise ValueError("There are inconsistencies with U2 in the csv input file")
-    
-        if np.any(np.isnan(PERIODS)): raise ValueError("NaN values found in input catalog")
-        if np.any(np.isnan(EPOCHS)):  raise ValueError("NaN values found in input catalog")
-        if np.any(np.isnan(DEPTHS)):  raise ValueError("NaN values found in input catalog")
-        if np.any(np.isnan(DURS)):    raise ValueError("NaN values found in input catalog")
-        if np.any(np.isnan(IMPACTS)): raise ValueError("NaN values found in input catalog")
-            
-        # put epochs in range (TIME_START, TIME_START + PERIOD)
-        for npl in range(NPL):
-            if EPOCHS[npl] < TIME_START:
-                adj = 1 + (TIME_START - EPOCHS[npl])//PERIODS[npl]
-                EPOCHS[npl] += adj*PERIODS[npl]        
-    
-            if EPOCHS[npl] > (TIME_START + PERIODS[npl]):
-                adj = (EPOCHS[npl] - TIME_START)//PERIODS[npl]
-                EPOCHS[npl] -= adj*PERIODS[npl]
-                
-        
-        # INITIALIZE NEW PLANET OBJECTS
-        planets = []
-        for npl in range(NPL):
-            p = Planet()
-    
-            # put in some basic transit parameters
-            p.epoch    = EPOCHS[npl]
-            p.period   = PERIODS[npl]
-            p.depth    = DEPTHS[npl]
-            p.duration = DURS[npl]
-            p.impact   = IMPACTS[npl]
-    
-            if p.impact > 1 - np.sqrt(p.depth):
-                p.impact = (1 - np.sqrt(p.depth))**2
-    
-            # load true transit times
-            true_tts = np.loadtxt(PROJECT_DIR + 'Simulations/{0}/{1}_{2}.tts'.format(RUN_ID, TARGET, npl)).swapaxes(0,1)    
-    
-            p.tts = true_tts[1]
-            p.index = np.array(true_tts[0], dtype='int')
-    
-            planets.append(p)
-    
-        order = np.argsort(PERIODS)
-    
-        sorted_planets = []
-        for npl in range(NPL):
-            sorted_planets.append(planets[order[npl]])
-    
-        planets = np.copy(sorted_planets)
-        
-        
-        # INJECT SYNTHETIC TRANSITS
-        tts  = []
-        inds = []
-        b    = np.zeros(NPL)
-        ror  = np.zeros(NPL)
-        dur  = np.zeros(NPL)
-    
-        for npl, p in enumerate(planets):
-            tts.append(p.tts)
-            inds.append(p.index)
-            b[npl] = p.impact
-            ror[npl] = np.sqrt(p.depth)
-            dur[npl] = p.duration
-    
-        starrystar = exo.LimbDarkLightCurve([U1,U2])
-        orbit = exo.orbits.TTVOrbit(transit_times=tts, transit_inds=inds, b=b, ror=ror, duration=dur)
-    
-        for i, lcd in enumerate(lc_data):
-            light_curve = starrystar.get_light_curve(orbit=orbit, r=ror, t=lcd.time, oversample=long_cadence_oversample, texp=lcit)
-            model_flux = pm.math.sum(light_curve, axis=-1) + T.ones(len(lcd.time))
-    
-            lcd.flux *= model_flux.eval()
-    
-        for i, scd in enumerate(sc_data):
-            light_curve = starrystar.get_light_curve(orbit=orbit, r=ror, t=scd.time)
-            model_flux = pm.math.sum(light_curve, axis=-1) + T.ones(len(scd.time))
-    
-            scd.flux *= model_flux.eval()
-            
-        lc_raw_sim_data = deepcopy(lc_data)
-        sc_raw_sim_data = deepcopy(sc_data)
     
     
     # # #########################
@@ -719,9 +575,11 @@ def main():
     # detrend long cadence data
     break_tolerance = np.max([int(DURS.min()/lcit*5/2), 13])
     min_period = 1.0
+
+    print(lcd.time, lcd.flux)
     
     for i, lcd in enumerate(lc_data):
-        print("QUARTER {}".format(lcd.quarter[0]))
+        print("LONG CAD QUARTER {}".format(lcd.quarter[0]))
         
         nom_per = oscillation_period_by_season[lcd.quarter[0] % 4][0]
         

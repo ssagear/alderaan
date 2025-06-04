@@ -109,12 +109,16 @@ ENV/
 .mypy_cache/
 
 
-data/
+bin/Data/
+bin/Catalogs/
+bin/Results/
+bin/Figures/
 fig*
 tab*
 val*
 *ipynb
 temp*
+bin/Quadry_eccs_060325/
 
 # shell scripts
 *tot
@@ -124,3 +128,4 @@ temp*
 
 # macOS
 .DS_Store
+

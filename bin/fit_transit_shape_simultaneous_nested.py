@@ -12,6 +12,9 @@ import warnings
 from datetime import datetime
 from timeit import default_timer as timer
 
+sys.path.append('../')
+
+
 print("")
 print("+"*shutil.get_terminal_size().columns)
 print("ALDERAAN Transit Fitting")
@@ -163,7 +166,7 @@ def main():
     
     # Read in the data from csv file
     if MISSION == 'Kepler':
-        target_dict = pd.read_csv(PROJECT_DIR + 'Catalogs/' + CATALOG)
+        target_dict = pd.read_csv(PROJECT_DIR + 'Catalogs/' + CATALOG, comment='#')
     elif MISSION == 'Simulated':
         target_dict = pd.read_csv(PROJECT_DIR + 'Simulations/{0}/{0}.csv'.format(RUN_ID))
     
@@ -178,20 +181,20 @@ def main():
         
         
     # pull relevant quantities and establish GLOBAL variables
-    use = np.array(target_dict['koi_id']) == KOI_ID
+    use = np.array(target_dict['kepoi_sys_name']) == KOI_ID
     
-    KIC = np.array(target_dict['kic_id'], dtype='int')[use]
-    NPL = np.array(target_dict['npl'], dtype='int')[use]
+    KIC = np.array(target_dict['kepid'], dtype='int')[use]
+    NPL = np.array(target_dict['koi_count'], dtype='int')[use]
     
-    PERIODS = np.array(target_dict['period'], dtype='float')[use]
-    DEPTHS  = np.array(target_dict['depth'], dtype='float')[use]/1e6
-    DURS    = np.array(target_dict['duration'], dtype='float')[use]
+    PERIODS = np.array(target_dict['koi_period'], dtype='float')[use]
+    DEPTHS  = np.array(target_dict['koi_depth'], dtype='float')[use]/1e6
+    DURS    = np.array(target_dict['koi_duration'], dtype='float')[use]
     
     if MISSION == 'Kepler':
         DURS /= 24.  # [hrs] --> [days]
     
-    U1 = np.array(target_dict['limbdark_1'], dtype='float')[use]
-    U2 = np.array(target_dict['limbdark_2'], dtype='float')[use]
+    U1 = np.array(target_dict['koi_ldm_coeff1'], dtype='float')[use]
+    U2 = np.array(target_dict['koi_ldm_coeff2'], dtype='float')[use]
     
     # do some consistency checks
     if all(k == KIC[0] for k in KIC): KIC = KIC[0]
@@ -605,19 +608,8 @@ def main():
         t_[j] = all_time[q][m_[j]]
         f_[j] = all_flux[q][m_[j]]
         e_[j] = all_error[q][m_[j]]
-        
-    '''# initialize TransitModel objects
-    transit_model = []
-    for npl in range(NPL):
-        transit_model.append([])
-        for j, q in enumerate(which_quarters):
-            transit_model[npl].append(batman.TransitModel(theta[npl], 
-                                                          ephem[npl]._warp_times(t_[j]),
-                                                          supersample_factor=oversample[q],
-                                                          exp_time=exptime[q]
-                                                         )
-                                     )
-    '''    
+
+
     # build the GP kernel using a different noise model for each season
     kernel = [None]*4
     for z in which_seasons:
@@ -626,12 +618,6 @@ def main():
                                     Q =np.exp(gp_priors[z]['logQ'][0])
                                    )
     
-    
-    # #### TODO:
-    # 1. Rename x --> theta (this is the parameter vector that is fed into dynesty)
-    # 2. Infer num_planets as (len(theta)-2)//5
-    # 3. Eliminate redundant batman theta
-    # 4. Generalize ld_priors to allow for non-static Gaussian uncertainty
     
     
     warped_t = []
@@ -682,9 +668,6 @@ def main():
     chk_file    = os.path.join(RESULTS_DIR, '{0}-dynesty.checkpoint'.format(TARGET))
     
     
-    #%prun [logl(ptform([0.5,0.5,0.5,0.5,0.5,0.5,0.5],1,[1]), *logl_args) for i in range(1000)]
-    
-    
     USE_MULTIPRO = False
     
     if USE_MULTIPRO:
@@ -723,6 +706,12 @@ def main():
     path = os.path.join(PROJECT_DIR, 'Results', RUN_ID, TARGET)
     os.makedirs(path, exist_ok=True)
     hduL.writeto(os.path.join(path, '{0}-results.fits'.format(TARGET)), overwrite=True)
+
+
+    # import pickle
+    # fname_pickle = os.path.join(path, '{0}-results.pickle'.format(TARGET))
+    # with open(fname_pickle, 'wb') as file:
+    #     pickle.dump(results, fname_pickle)
     
     
     # ## Exit program

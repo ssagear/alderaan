@@ -12,6 +12,8 @@ import warnings
 from datetime import datetime
 from timeit import default_timer as timer
 
+sys.path.append('../')
+
 print("")
 print("+"*shutil.get_terminal_size().columns)
 print("ALDERAAN Autocorrelated Noise Analysis")
@@ -157,7 +159,7 @@ def main():
     
     # Read in the data from csv file
     if MISSION == 'Kepler':
-        target_dict = pd.read_csv(os.path.join(PROJECT_DIR, 'Catalogs', CATALOG))
+        target_dict = pd.read_csv(PROJECT_DIR + 'Catalogs/' + CATALOG, comment='#')
     elif MISSION == 'Simulated':
         target_dict = pd.read_csv(os.path.join(PROJECT_DIR, 'Simulations/{0}/{0}.csv'.format(RUN_ID)))
     
@@ -170,13 +172,14 @@ def main():
         raise ValueError("MISSION must be 'Kepler' or 'Simulated'")
         
     # pull relevant quantities and establish GLOBAL variables
-    use = np.array(target_dict['koi_id']) == KOI_ID
+    print(os.path.join(PROJECT_DIR, 'Catalogs', CATALOG))
+    use = np.array(target_dict['kepoi_sys_name']) == KOI_ID
     
-    KIC = np.array(target_dict['kic_id'], dtype='int')[use]
-    NPL = np.array(target_dict['npl'], dtype='int')[use]
-    PERIODS = np.array(target_dict['period'], dtype='float')[use]
-    DEPTHS  = np.array(target_dict['depth'], dtype='float')[use]
-    DURS = np.array(target_dict['duration'], dtype='float')[use]
+    KIC = np.array(target_dict['kepid'], dtype='int')[use]
+    NPL = np.array(target_dict['koi_count'], dtype='int')[use]
+    PERIODS = np.array(target_dict['koi_period'], dtype='float')[use]
+    DEPTHS  = np.array(target_dict['koi_depth'], dtype='float')[use]
+    DURS = np.array(target_dict['koi_duration'], dtype='float')[use]
     
     if MISSION == 'Kepler':
         DURS /= 24.  # [hrs] --> [days]

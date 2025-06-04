@@ -1,6 +1,18 @@
 import argparse
 import os
 import stat
+from astropy.table import Table
+
+
+def koi_to_kepid(nkoi):
+
+    koi_cumul = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
+
+    kep_tab_system = koi_cumul[koi_cumul['kepoi_sys_name'] == nkoi]
+    kepid = kep_tab_system['kepid'].value[0]
+
+    return kepid
+
 
 def lookup_epochs(quarter, cadence):
     LONG_QUARTER_PREFIXES = {'0':['2009131105131'],
@@ -73,7 +85,7 @@ def print_cmd(ofile, url, cadence_str, kepid, epochs, cmdtype):
     for epoch in epochs:
         this_filename = "kplr" + kepid + '-' + epoch + cadence_str
         if cmdtype == "curl":
-            cmd_str_to_add = " -f -R -o " + this_filename + " "
+            cmd_str_to_add = " -L -O "
         else:
             cmd_str_to_add = " "
         this_cmd = (cmdtype + cmd_str_to_add + url + kepid[0:4] + '/' + kepid + '/' + this_filename)
@@ -153,8 +165,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script to generate download commands given one or"
                                      " more Kepler IDs.", epilog="Example: python get_kepler.py"
                                      " 7730747 7748238 -c short -t lightcurve -q 7 8")
-    parser.add_argument("kepids", action="store", nargs='+', help="One or more Kepler IDs to"
-                        " retrieve data from.")
+    # parser.add_argument("kepids", action="store", nargs='+', help="One or more Kepler IDs to"
+    #                     " retrieve data from.")
+    parser.add_argument("koi", action="store", nargs='+', help="One KOI system number to"
+                        " retrieve data from. 'K00886' for example")
     parser.add_argument("-c", action="store", type=str.lower, dest="cadence", default="long",
                         choices=["short", "long"], help="Specify the type of cadence.  Default="
                         "'%(default)s'.")
@@ -173,4 +187,6 @@ if __name__ == "__main__":
     epoch_quarter_group.add_argument("-q", action="store", type=str, dest="quarters", nargs="*",
                                      help="One or more quarters to retrieve with each Kepler ID.")
     args = vars(parser.parse_args())
+    kepid = [koi_to_kepid(args['koi'])]
+    args["kepids"] = kepid
     get_kepler(args)

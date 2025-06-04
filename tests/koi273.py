@@ -22,6 +22,8 @@ import aesara_theano_fallback.tensor as T
 from   aesara_theano_fallback import aesara as theano
 from   celerite2 import GaussianProcess
 from   celerite2 import terms as GPterms
+
+sys.path.append('../')
 from   alderaan.constants import *
 from   alderaan.detrend import make_transitmask
 import alderaan.dynesty_helpers as dynhelp
@@ -473,7 +475,7 @@ def run_test():
 
 
 
-@profile
+# @profile
 def lnlike(x, num_planets, theta, transit_model, quarters, ephem_args, phot_args, gp_kernel, ld_priors):
     for i in range(1000):
        # extract ephemeris data

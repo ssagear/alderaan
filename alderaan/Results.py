@@ -49,7 +49,7 @@ class _Lightcurve:
             plt.xlim(self.time[self.quarter == quarter].min(), self.time[self.quarter == quarter].max())
         else:
             warnings.warn("Attempting to plot quarter with no data")
-        plt.show()
+        # plt.show()
         
         return None
     
@@ -295,7 +295,7 @@ class Results:
             ax[i].set_ylabel('O-C [min]', fontsize=20)
             
         ax[self.npl-1].set_xlabel('Time [BJKD]', fontsize=20)
-        plt.show() 
+        # plt.show() 
         
     
     def plot_transit(self, n, index):
@@ -321,7 +321,7 @@ class Results:
         plt.ylabel("Flux [ppt]", fontsize=24)
         plt.text(t_obs.max(), f_obs.max(), "PERIOD = {0}".format(np.round(theta.per,2)), \
                  fontsize=20, ha='right', va='top')
-        plt.show()
+        # plt.show()
         
         
     def plot_folded(self, n, max_pts=1000):
@@ -379,7 +379,7 @@ class Results:
         ax[1].set_xlabel("Time from mid-transit [hrs]", fontsize=24)
         ax[1].text(0.02, 0.8, "RMS = {0}".format(int(np.std(residuals)*1e6)), transform=ax[1].transAxes, fontsize=11)
         
-        plt.show()
+        # plt.show()
         
         
     def summary(self):
