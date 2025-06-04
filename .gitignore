@@ -110,7 +110,6 @@ ENV/
 
 
 bin/Data/
-bin/Catalogs/
 bin/Results/
 bin/Figures/
 fig*
