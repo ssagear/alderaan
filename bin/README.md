@@ -1,7 +1,7 @@
 Run with format
 
-./run -pipeline.sh '[KOI ID]'
+./run-pipeline.sh '[KOI ID]'
 
 e.g.
 
-./run -pipeline.sh 'K00247' for KOI 247 system
+./run-pipeline.sh 'K00247' for KOI 247 system
