@@ -1,5 +1,7 @@
-The order of operations for executing the ALDERAAN pipeline is
-1. download_from_MAST.py
-2. detrend_and_estimate_TTVs.py
-3. analyze_autocorrelated_noise.py
-4. fit_transit_shape_*.py
+Run with format
+
+./run -pipeline.sh '[KOI ID]'
+
+e.g.
+
+./run -pipeline.sh 'K00247' for KOI 247 system
