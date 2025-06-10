@@ -6,9 +6,9 @@ cd Data
 find . -type f -name "*.fits" -size -1k -delete
 
 cd ../
-python detrend_and_estimate_ttvs.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_01_25'
-python analyze_autocorrelated_noise.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_01_25'
-python fit_transit_shape_simultaneous_nested.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_01_25'
+python detrend_and_estimate_ttvs.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_09_25'
+python analyze_autocorrelated_noise.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_09_25'
+python fit_transit_shape_simultaneous_nested.py --mission 'Kepler' --target $1 --project_dir './' --data_dir 'Data/' --catalog 'cumulative_2025.05.30_14.09.29.csv' --run_id '06_09_25'
 python importance.py $1 0
 python importance.py $1 1
 python importance.py $1 2

@@ -19,8 +19,8 @@ berger = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/al
 nkoi = sys.argv[1]
 plno = int(sys.argv[2])
 
-figure_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Figures/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
-results_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Results/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+figure_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Figures/06_09_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+results_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Results/06_09_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
 
 kep_tab_system = koi_cumul[koi_cumul['kepoi_sys_name'] == nkoi]
 kep_tab_system.sort('koi_period')
@@ -40,7 +40,7 @@ def koi_to_kepid(nkoi):
 
     return kepid
 
-res = Results(target=nkoi, data_dir='/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Results/06_01_25/',)
+res = Results(target=nkoi, data_dir='/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Results/06_09_25/',)
 
 
 plt.clf()

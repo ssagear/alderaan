@@ -44,9 +44,14 @@ def prior_transform(uniform_hypercube, num_planets, durations):
     for npl in range(num_planets):
         x_[5*npl+0] = norm_ppf(u_[0+npl*5], 0., 0.1)
         x_[5*npl+1] = norm_ppf(u_[1+npl*5], 0., 0.1)
-        x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-5, 0.99)
+
+        # x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-5, 0.99)
+        x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-3, 0.99)
+        
         x_[5*npl+3] = uniform_ppf(u_[3+npl*5], 0., 1+x_[5*npl+2])
-        x_[5*npl+4] = loguniform_ppf(u_[4+npl*5], scit, 3*durations[npl])
+        
+        # x_[5*npl+4] = loguniform_ppf(u_[4+npl*5], scit, 3*durations[npl])
+        x_[5*npl+4] = loguniform_ppf(u_[4+npl*5], 0.006, 3*durations[npl])
                  
     # limb darkening coefficients (see Kipping 2013)
     x_[-2] = uniform_ppf(u_[-2], 0, 1)
