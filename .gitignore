@@ -121,9 +121,7 @@ bin/Quadry_eccs_060325/
 
 # shell scripts
 *tot
-bin/go.sh
-bin/run.sh
-bin/script.sh
+bin/*.sh
 
 *load_table_cache*
 
