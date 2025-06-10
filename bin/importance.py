@@ -13,14 +13,20 @@ from alderaan.Results import *
 import sys
 
 
-koi_cumul = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
-berger = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Catalogs/gaia_kepler_berger_2020_tab2_output.mrt', format='mrt')
+koi_cumul = Table.read('Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
+berger = Table.read('Catalogs/gaia_kepler_berger_2020_tab2_output.mrt', format='mrt')
 
 nkoi = sys.argv[1]
 plno = int(sys.argv[2])
 
-figure_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Figures/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
-results_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Results/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+# figure_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Figures/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+# results_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Results/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+
+# figure_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/MetallicityProject/HiPerGator/HPG_TTV_Fits/Figures/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+# results_direct = '/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/MetallicityProject/HiPerGator/HPG_TTV_Fits/Results/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-
+
+figure_direct = 'Figures/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
+results_direct = 'Results/06_01_25/' + str(nkoi) + '/' + str(nkoi) + '_pl' + str(plno) + '-'
 
 kep_tab_system = koi_cumul[koi_cumul['kepoi_sys_name'] == nkoi]
 kep_tab_system.sort('koi_period')
@@ -33,14 +39,13 @@ print(koin)
 
 def koi_to_kepid(nkoi):
 
-    koi_cumul = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
-
     kep_tab_system = koi_cumul[koi_cumul['kepoi_sys_name'] == nkoi]
     kepid = kep_tab_system['kepid'].value[0]
 
     return kepid
 
-res = Results(target=nkoi, data_dir='/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan-fork/alderaan/bin/Results/06_01_25/',)
+# res = Results(target=nkoi, data_dir='/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/MetallicityProject/HiPerGator/HPG_TTV_Fits/Results/06_01_25/',)
+res = Results(target=nkoi, data_dir='Results/06_01_25/',)
 
 
 plt.clf()
@@ -288,7 +293,7 @@ w, d = imp_sample_rhostar(period, duration, rprs, impact, rho_star)
 fs = np.vstack((d['PERIOD'], d['ROR'], d['IMPACT'], d['DUR14'], d['OMEGA'], d['ECC'])).T
 
 per_range = np.percentile(d['PERIOD'], [1,99])
-ror_range = np.percentile(d['ROR'], [1,98])
+ror_range = np.percentile(d['ROR'], [3,97])
 impact_range = np.percentile(d['IMPACT'], [1,99])
 dur_range = np.percentile(d['DUR14'], [1,99])
 ecc_range = np.percentile(d['ECC'], [1,99])
@@ -296,14 +301,23 @@ omega_range = np.percentile(d['OMEGA'], [1,99])
 
 
 plt.clf()
+
 range = [per_range, ror_range, impact_range, dur_range, omega_range, ecc_range]
-corner(fs, labels=['per', 'ror', 'impact', 'dur', 'omega', 'ecc'], show_titles=True, plot_contours=True, range=range);
+
+truths = [kep_tab_planet['koi_period'], kep_tab_planet['koi_ror'], \
+          kep_tab_planet['koi_impact'], kep_tab_planet['koi_duration']/24, None, None]
+
+corner(fs, labels=['per', 'ror', 'impact', 'dur', 'omega', 'ecc'], range=range, show_titles=True, truths=truths, truth_color='maroon',\
+                levels=[0.393, 0.865, 0.988], plot_datapoints=False, plot_density=False, fill_contours=True,\
+                    contourf_kwargs={'colors': ['white', '#A6CAE5', '#6A97BA', '#3674A3']}, contour_kwargs={'colors': ['white', '#A6CAE5', '#6A97BA', '#3674A3']},\
+                    label_kwargs={'fontsize': 17});
+
 plt.savefig(figure_direct + 'imp_corner_pl' + str(plno) + '.png')
 plt.close()
 
 
+
 np.savetxt(results_direct + 'importance_samples.txt', d)
-np.savetxt(results_direct + 'weights.txt', w)
 
 plt.clf()
 plt.figure(figsize=(5, 5))
@@ -313,7 +327,6 @@ plt.ylabel('e')
 plt.title(koin)
 plt.savefig(figure_direct + 'ew.png')
 plt.close()
-
 
 plt.clf()
 plt.figure(figsize=(5, 4))
