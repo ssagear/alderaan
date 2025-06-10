@@ -46,7 +46,7 @@ def prior_transform(uniform_hypercube, num_planets, durations):
         x_[5*npl+1] = norm_ppf(u_[1+npl*5], 0., 0.1)
 
         # x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-5, 0.99)
-        x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-3, 0.99)
+        x_[5*npl+2] = loguniform_ppf(u_[2+npl*5], 1e-3, 0.25)
         
         x_[5*npl+3] = uniform_ppf(u_[3+npl*5], 0., 1+x_[5*npl+2])
         
