@@ -84,6 +84,7 @@ range = [per_range,t0_range, ror_range, impact_range, dur_range, ld1_range, ld2_
 
 plt.clf()
 corner(fs, labels=['per', 't0', 'ror', 'impact', 'dur', 'ld1', 'ld2'], show_titles=True, plot_contours=True, range=range, truths=truths, truth_color='red');
+plt.suptitle(koin, fontsize=30)
 plt.savefig(figure_direct + 'raw_corner_pl' + str(plno) + '.png')
 plt.close()
 
@@ -311,6 +312,7 @@ corner(fs, labels=['per', 'ror', 'impact', 'dur', 'omega', 'ecc'], range=range, 
                 levels=[0.393, 0.865, 0.988], plot_datapoints=False, plot_density=False, fill_contours=True,\
                     contourf_kwargs={'colors': ['white', '#A6CAE5', '#6A97BA', '#3674A3']}, contour_kwargs={'colors': ['white', '#A6CAE5', '#6A97BA', '#3674A3']},\
                     label_kwargs={'fontsize': 17});
+plt.suptitle(koin, fontsize=30)
 
 plt.savefig(figure_direct + 'imp_corner_pl' + str(plno) + '.png')
 plt.close()
@@ -318,6 +320,7 @@ plt.close()
 
 
 np.savetxt(results_direct + 'importance_samples.txt', d)
+np.savetxt(results_direct + 'rho_star.txt', [rho_mean, rho_std])
 
 plt.clf()
 plt.figure(figsize=(5, 5))

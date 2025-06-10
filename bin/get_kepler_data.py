@@ -6,7 +6,7 @@ from astropy.table import Table
 
 def koi_to_kepid(nkoi):
 
-    koi_cumul = Table.read('/Users/ssagear/UFL Dropbox/Sheila Sagear/Research/github/alderaan/bin/Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
+    koi_cumul = Table.read('Catalogs/cumulative_2025.05.30_14.09.29.csv', format='csv', comment='#')
 
     kep_tab_system = koi_cumul[koi_cumul['kepoi_sys_name'] == nkoi]
     kepid = kep_tab_system['kepid'].value[0]
